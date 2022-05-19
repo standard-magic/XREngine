@@ -9,7 +9,7 @@ import { receiveJoinWorld } from '@xrengine/engine/src/networking/functions/rece
 import { useHookEffect, useState } from '@xrengine/hyperflux'
 
 import { client } from '../../feathers'
-import GameServerWarnings from './GameServerWarnings'
+import InstanceServerWarnings from './InstanceServerWarnings'
 
 export const OfflineLocation = () => {
   const engineState = useState(getEngineState())
@@ -54,7 +54,7 @@ export const OfflineLocation = () => {
     }
   }, [engineState.connectedWorld, engineState.sceneLoaded])
 
-  return <GameServerWarnings />
+  return <InstanceServerWarnings />
 }
 
 export default OfflineLocation

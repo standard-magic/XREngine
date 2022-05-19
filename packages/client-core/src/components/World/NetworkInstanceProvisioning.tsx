@@ -23,7 +23,7 @@ import { receiveJoinWorld } from '@xrengine/engine/src/networking/functions/rece
 import { useHookEffect } from '@xrengine/hyperflux'
 
 import { getSearchParamFromURL } from '../../util/getSearchParamFromURL'
-import GameServerWarnings from './GameServerWarnings'
+import InstanceServerWarnings from './InstanceServerWarnings'
 
 export const NetworkInstanceProvisioning = () => {
   const authState = useAuthState()
@@ -65,8 +65,7 @@ export const NetworkInstanceProvisioning = () => {
         let instanceId
 
         if (search != null) {
-          const parsed = new URL(window.location.href).searchParams.get('instanceId')
-          instanceId = parsed
+          instanceId = new URL(window.location.href).searchParams.get('instanceId')
         }
 
         LocationInstanceConnectionService.provisionServer(
@@ -150,7 +149,7 @@ export const NetworkInstanceProvisioning = () => {
     currentChannelInstanceConnection?.connecting
   ])
 
-  return <GameServerWarnings />
+  return <InstanceServerWarnings />
 }
 
 export default NetworkInstanceProvisioning

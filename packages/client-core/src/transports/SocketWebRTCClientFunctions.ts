@@ -448,7 +448,7 @@ export async function createTransport(networkTransport: SocketWebRTCClientTransp
       )
       console.error('Transport', transport, ' transitioned to state', state)
       console.error(
-        'If this occurred unexpectedly shortly after joining a world, check that the gameserver nodegroup has public IP addresses.'
+        'If this occurred unexpectedly shortly after joining a world, check that the instanceserver nodegroup has public IP addresses.'
       )
       console.log('Waiting 5 seconds to make a new transport')
       setTimeout(async () => {

@@ -7,7 +7,7 @@ import type SocketIO from 'socket.io'
 
 import { ServiceTypes } from '@xrengine/common/declarations'
 
-import { SocketWebRTCServerTransport } from '../gameserver/src/SocketWebRTCServerTransport'
+import { SocketWebRTCServerTransport } from '../instanceserver/src/SocketWebRTCServerTransport'
 
 export type Application = ExpressFeathers<ServiceTypes> & {
   // Common
@@ -21,11 +21,11 @@ export type Application = ExpressFeathers<ServiceTypes> & {
   transport: SocketWebRTCServerTransport
   seed: () => Application // function
 
-  // Gameserver
+  // Instanceserver
   instance: any
-  gsSubdomainNumber: string
+  isSubdomainNumber: string
   isChannelInstance: boolean
-  gameServer: any
+  instanceServer: any
   isSetup: Promise<boolean>
   restart: () => void
 

@@ -14,7 +14,7 @@ const settingsServiceNames = [
   'chargebee-setting',
   'client-setting',
   'email-setting',
-  'game-server-setting',
+  'instance-server-setting',
   'redis-setting',
   'server-setting'
 ]

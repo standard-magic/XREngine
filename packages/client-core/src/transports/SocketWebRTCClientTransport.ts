@@ -14,7 +14,7 @@ import { addActionReceptor, defineAction } from '@xrengine/hyperflux'
 import { Action } from '@xrengine/hyperflux/functions/ActionFunctions'
 
 import { accessAuthState } from '../user/services/AuthService'
-import { gameserverHost } from '../util/config'
+import { instanceserverHost } from '../util/config'
 import { MediaStreamService } from './../media/services/MediaStreamService'
 import { onConnectToInstance } from './SocketWebRTCClientFunctions'
 
@@ -39,12 +39,12 @@ export class SocketWebRTCClientTransport implements NetworkTransport {
   static actions = {
     noWorldServersAvailable: defineAction({
       store: 'ENGINE',
-      type: 'WEBRTC_PROVISION_INSTANCE_NO_GAMESERVERS_AVAILABLE' as const,
+      type: 'WEBRTC_PROVISION_INSTANCE_NO_INSTANCESERVERS_AVAILABLE' as const,
       instanceId: matches.string
     }),
     noMediaServersAvailable: defineAction({
       store: 'ENGINE',
-      type: 'WEBRTC_PROVISION_CHANNEL_NO_GAMESERVERS_AVAILABLE' as const
+      type: 'WEBRTC_PROVISION_CHANNEL_NO_INSTANCESERVERS_AVAILABLE' as const
     }),
     worldInstanceKicked: defineAction({
       store: 'ENGINE',
@@ -155,7 +155,7 @@ export class SocketWebRTCClientTransport implements NetworkTransport {
         query
       })
     } else {
-      this.socket = ioclient(gameserverHost, {
+      this.socket = ioclient(instanceserverHost, {
         path: `/socket.io/${ipAddress as string}/${port.toString()}`,
         query
       })
