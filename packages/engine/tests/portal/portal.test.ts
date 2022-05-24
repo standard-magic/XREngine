@@ -15,10 +15,10 @@ dotenv.config({
   silent: true
 })
 
-const sceneData = parseSceneDataCacheURLs(sceneJson, process.env.LOCAL_STORAGE_PROVIDER!)
+// const sceneData = await parseSceneDataCacheURLs(sceneJson, process.env.LOCAL_STORAGE_PROVIDER!)
 
 // TODO replace with inidivudal unit tests for relevant functions
-describe.skip('Portal', () => {
+describe.skip('Portal', async () => {
   // before(async () => {
   //   await initializeEngine(engineTestSetup)
   // })

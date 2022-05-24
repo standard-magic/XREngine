@@ -100,6 +100,18 @@ export class LocalStorage implements StorageProviderInterface {
       .catch(() => false)
   }
 
+  getCachedAsset(path: string, internal: boolean = false): Promise<string> {
+    return new Promise((resolve, reject) => {
+      if (!this.cacheDomain)
+        reject(new Error('No cache domain found - please check the storage provider configuration'))
+      if (config.kubernetes.enabled && internal)
+        this.cacheDomain = config.server.localStorageProviderPort
+          ? `host.minikube.internal:${config.server.localStorageProviderPort}`
+          : 'host.minikube.internal'
+      resolve(new URL(path ?? '', 'https://' + this.cacheDomain).href)
+    })
+  }
+
   getSignedUrl = (key: string, _expiresAfter: number, _conditions): any => {
     return {
       fields: { Key: key },

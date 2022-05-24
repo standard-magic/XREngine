@@ -11,7 +11,6 @@ import templateProjectJson from '@xrengine/projects/template-project/package.jso
 import { Application } from '../../../declarations'
 import config from '../../appconfig'
 import logger from '../../logger'
-import { getCachedAsset } from '../../media/storageprovider/getCachedAsset'
 import { getStorageProvider } from '../../media/storageprovider/storageprovider'
 import { getFileKeysRecursive } from '../../media/storageprovider/storageProviderUtils'
 import { cleanString } from '../../util/cleanString'
@@ -82,7 +81,8 @@ export const uploadLocalProjectToProvider = async (projectName, remove = true) =
               },
               { isDirectory: false }
             )
-            resolve(getCachedAsset(`projects/${projectName}${filePathRelative}`, storageProvider.cacheDomain, true))
+            const asset = await storageProvider.getCachedAsset(`projects/${projectName}${filePathRelative}`, true)
+            resolve(asset)
           } catch (e) {
             logger.error(e)
             resolve(null)

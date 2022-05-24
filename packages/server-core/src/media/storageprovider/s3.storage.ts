@@ -165,6 +165,15 @@ export class S3Provider implements StorageProviderInterface {
 
   getStorage = (): typeof S3BlobStore => this.blob
 
+  getCachedAsset(path: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      if (!this.cacheDomain)
+        reject(new Error('No cache domain found - please check the storage provider configuration'))
+
+      resolve(new URL(path ?? '', 'https://' + this.cacheDomain).href)
+    })
+  }
+
   getSignedUrl = async (key: string, expiresAfter: number, conditions): Promise<SignedURLResponse> => {
     const result = await new Promise<PresignedPost>((resolve) => {
       this.provider.createPresignedPost(

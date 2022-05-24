@@ -8,7 +8,6 @@ import { Application } from '../../../declarations'
 import restrictUserRole from '../../hooks/restrict-user-role'
 import logger from '../../logger'
 import { AvatarUploadArguments } from '../../user/avatar/avatar-helper'
-import { getCachedAsset } from '../storageprovider/getCachedAsset'
 import { getStorageProvider } from '../storageprovider/storageprovider'
 import hooks from './upload-asset.hooks'
 
@@ -62,7 +61,7 @@ export const addGenericAssetToS3AndStaticResources = async (
   )
 
   // add asset to static resources
-  const assetURL = getCachedAsset(key, provider.cacheDomain)
+  const assetURL = await provider.getCachedAsset(key)
   try {
     if (existingAsset.rows.length) {
       promises.push(provider.deleteResources([existingAsset.rows[0].id]))

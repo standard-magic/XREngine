@@ -3,7 +3,7 @@ import { SceneData } from '@xrengine/common/src/interfaces/SceneInterface'
 import { isDev } from '@xrengine/common/src/utils/isDev'
 
 import config from '../../appconfig'
-import { getCachedAsset } from '../../media/storageprovider/getCachedAsset'
+import { StorageProviderInterface } from '../../media/storageprovider/storageprovider.interface'
 
 export const sceneRelativePathIdentifier = '__$project$__'
 export const sceneCorsPathIdentifier = '__$cors-proxy$__'
@@ -12,18 +12,21 @@ export const corsPath =
     ? `https://${config.server.hostname}:${config.server.corsServerPort}`
     : `https://${config.server.hostname}/cors-proxy`
 
-export const parseSceneDataCacheURLs = (sceneData: any, cacheDomain: string, internal = false) => {
+export const parseSceneDataCacheURLs = async (
+  sceneData: any,
+  storageProvider: StorageProviderInterface,
+  internal = false
+) => {
   for (const [key, val] of Object.entries(sceneData)) {
     if (val && typeof val === 'object') {
-      sceneData[key] = parseSceneDataCacheURLs(val, cacheDomain, internal)
+      sceneData[key] = await parseSceneDataCacheURLs(val, storageProvider, internal)
     }
     if (typeof val === 'string') {
       if (val.includes(sceneRelativePathIdentifier)) {
-        if (config.server.storageProvider === 'local' && config.kubernetes.enabled && internal)
-          cacheDomain = config.server.localStorageProviderPort
-            ? `host.minikube.internal:${config.server.localStorageProviderPort}`
-            : 'host.minikube.internal'
-        sceneData[key] = getCachedAsset(val.replace(sceneRelativePathIdentifier, '/projects'), cacheDomain, internal)
+        sceneData[key] = await storageProvider.getCachedAsset(
+          val.replace(sceneRelativePathIdentifier, '/projects'),
+          internal
+        )
       } else if (val.startsWith(sceneCorsPathIdentifier)) {
         sceneData[key] = val.replace(sceneCorsPathIdentifier, corsPath)
       }
@@ -32,14 +35,24 @@ export const parseSceneDataCacheURLs = (sceneData: any, cacheDomain: string, int
   return sceneData
 }
 
-export const cleanSceneDataCacheURLs = (sceneData: any, cacheDomain: string) => {
+export const cleanSceneDataCacheURLs = async (
+  sceneData: any,
+  storageProvider: StorageProviderInterface,
+  internal = false
+) => {
   for (const [key, val] of Object.entries(sceneData)) {
     if (val && typeof val === 'object') {
-      sceneData[key] = cleanSceneDataCacheURLs(val, cacheDomain)
+      sceneData[key] = await cleanSceneDataCacheURLs(val, storageProvider, internal)
     }
     if (typeof val === 'string') {
-      if (val.includes('https://' + cacheDomain + '/projects')) {
-        sceneData[key] = val.replace('https://' + cacheDomain + '/projects', sceneRelativePathIdentifier)
+      let host = storageProvider.cacheDomain
+      if (val.includes(host)) {
+        if (val.startsWith('https://')) host = 'https://' + host
+        else host = 'http://' + host
+
+        if (val.includes('/projects')) host += '/projects'
+
+        sceneData[key] = val.replace(host, sceneRelativePathIdentifier)
       } else if (val.startsWith(corsPath)) {
         sceneData[key] = val.replace(corsPath, sceneCorsPathIdentifier)
       }

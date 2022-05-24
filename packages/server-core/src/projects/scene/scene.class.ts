@@ -9,7 +9,6 @@ import defaultSceneSeed from '@xrengine/projects/default-project/default.scene.j
 
 import { Application } from '../../../declarations'
 import logger from '../../logger'
-import { getCachedAsset } from '../../media/storageprovider/getCachedAsset'
 import { getStorageProvider } from '../../media/storageprovider/storageprovider'
 import { cleanString } from '../../util/cleanString'
 import { cleanSceneDataCacheURLs, parseSceneDataCacheURLs } from './scene-parser'
@@ -23,18 +22,17 @@ export const getSceneData = async (projectName, sceneName, metadataOnly, interna
   const scenePath = `projects/${projectName}/${sceneName}.scene.json`
   const thumbnailPath = `projects/${projectName}/${sceneName}.thumbnail.jpeg`
 
-  const thumbnailUrl = getCachedAsset(thumbnailPath, storageProvider.cacheDomain, internal)
+  const thumbnailUrl = await storageProvider.getCachedAsset(thumbnailPath, internal)
 
   const sceneExists = await storageProvider.doesExist(`${sceneName}.scene.json`, `projects/${projectName}/`)
   if (sceneExists) {
     const sceneResult = await storageProvider.getObject(scenePath)
+    const sceneUrl = await parseSceneDataCacheURLs(JSON.parse(sceneResult.Body.toString()), storageProvider, internal)
     const sceneData: SceneData = {
       name: sceneName,
       project: projectName,
       thumbnailUrl: thumbnailUrl + `?${Date.now()}`,
-      scene: metadataOnly
-        ? undefined!
-        : parseSceneDataCacheURLs(JSON.parse(sceneResult.Body.toString()), storageProvider.cacheDomain, internal)
+      scene: metadataOnly ? undefined! : sceneUrl
     }
     return sceneData
   }
@@ -189,11 +187,10 @@ export class Scene implements ServiceMethods<any> {
     if (!project.data) throw new Error(`No project named ${projectName} exists`)
 
     const newSceneJsonPath = `projects/${projectName}/${sceneName}.scene.json`
+    const sceneUrl = await cleanSceneDataCacheURLs(sceneData ?? defaultSceneSeed, storageProvider)
     await storageProvider.putObject({
       Key: newSceneJsonPath,
-      Body: Buffer.from(
-        JSON.stringify(cleanSceneDataCacheURLs(sceneData ?? defaultSceneSeed, storageProvider.cacheDomain))
-      ),
+      Body: Buffer.from(JSON.stringify(sceneUrl)),
       ContentType: 'application/json'
     })
 
@@ -212,10 +209,8 @@ export class Scene implements ServiceMethods<any> {
         `packages/projects/projects/${projectName}/${sceneName}.scene.json`
       )
 
-      fs.writeFileSync(
-        path.resolve(newSceneJsonPathLocal),
-        JSON.stringify(cleanSceneDataCacheURLs(sceneData ?? defaultSceneSeed, storageProvider.cacheDomain), null, 2)
-      )
+      const url = await cleanSceneDataCacheURLs(sceneData ?? defaultSceneSeed, storageProvider)
+      fs.writeFileSync(path.resolve(newSceneJsonPathLocal), JSON.stringify(url, null, 2))
 
       if (thumbnailBuffer) {
         const sceneThumbnailPath = path.resolve(

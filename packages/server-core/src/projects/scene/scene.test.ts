@@ -29,7 +29,7 @@ describe('scene.test', () => {
     deleteFolderRecursive(projectDir)
     app = await createFeathersExpressApp()
     const storageProvider = getStorageProvider()
-    parsedData = parseSceneDataCacheURLs(_.cloneDeep(defaultSceneSeed) as any, storageProvider.cacheDomain)
+    parsedData = await parseSceneDataCacheURLs(_.cloneDeep(defaultSceneSeed) as any, storageProvider)
   })
 
   // wait for initial project loading to occur in CI/CD

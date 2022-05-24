@@ -53,6 +53,14 @@ export interface StorageProviderInterface {
   isDirectory(fileName: string, directoryPath: string): Promise<boolean>
 
   /**
+   * Gets the cached asset url
+   * @param path
+   * @param internal
+   * @returns {string}
+   */
+  getCachedAsset(path: string, internal?: boolean): Promise<string>
+
+  /**
    * Gets the object
    * @param key
    * @returns {StorageObjectInterface}

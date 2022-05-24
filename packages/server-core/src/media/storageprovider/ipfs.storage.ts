@@ -22,6 +22,7 @@ export class IPFSStorage implements StorageProviderInterface {
   _client: IPFSHTTPClient
   _blobStore: IPFSBlobStore
   _pathPrefix: string = '/'
+  _apiDomain: string
 
   doesExist(fileName: string, directoryPath: string): Promise<boolean> {
     const filePath = path.join(this._pathPrefix, directoryPath, fileName)
@@ -36,6 +37,16 @@ export class IPFSStorage implements StorageProviderInterface {
       .stat(filePath)
       .then((res) => res.type === 'directory')
       .catch(() => false)
+  }
+  async getCachedAsset(assetPath: string): Promise<string> {
+    if (!this.cacheDomain) throw new Error('No cache domain found - please check the storage provider configuration')
+
+    const filePath = path.join(this._pathPrefix, assetPath)
+
+    return this._client.files
+      .stat(filePath)
+      .then((stats) => new URL(`/ipfs/${stats.cid.toString()}`, `http://${this.cacheDomain}`).href)
+      .catch(() => new URL(`http://${this.cacheDomain}`).href)
   }
   async getObject(key: string): Promise<StorageObjectInterface> {
     const filePath = path.join(this._pathPrefix, key)
@@ -65,7 +76,7 @@ export class IPFSStorage implements StorageProviderInterface {
   getSignedUrl(key: string, _expiresAfter: number, _conditions: any): any {
     return {
       fields: { Key: key },
-      url: `https://ipfs.io/ipfs/${key}`,
+      url: `https://${this.cacheDomain}/ipfs/${key}`,
       local: false,
       cacheDomain: this.cacheDomain
     }
@@ -183,8 +194,9 @@ export class IPFSStorage implements StorageProviderInterface {
 
       const forward = new k8s.PortForward(kc)
 
-      this.cacheDomain = await this._forwardIPFS(podName, forward)
-      this._client = create({ url: `http://${this.cacheDomain}` })
+      this.cacheDomain = await this._forwardIPFS(podName, forward, 8080)
+      this._apiDomain = await this._forwardIPFS(podName, forward, 5001)
+      this._client = create({ url: `http://${this._apiDomain}` })
       this._blobStore = new IPFSBlobStore(this._client)
     }
   }
@@ -214,15 +226,15 @@ export class IPFSStorage implements StorageProviderInterface {
     return ''
   }
 
-  async _forwardIPFS(podName: string, forward: k8s.PortForward): Promise<string> {
+  async _forwardIPFS(podName: string, forward: k8s.PortForward, forwardPort: number): Promise<string> {
     return new Promise((resolve) => {
       const server = net.createServer((socket) => {
-        forward.portForward('default', podName, [5001], socket, socket, socket)
+        forward.portForward('default', podName, [forwardPort], socket, socket, socket)
       })
       server.listen(0, '127.0.0.1', () => {
         const { port } = server.address() as net.AddressInfo
         const address = `127.0.0.1:${port}`
-        console.log('Listening IPFS on: ', address)
+        console.log(`Listening IPFS port ${forwardPort} on: `, address)
         resolve(address)
       })
     })

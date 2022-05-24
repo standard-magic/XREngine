@@ -1,6 +1,7 @@
 import assert from 'assert'
 import _ from 'lodash'
 
+import IPFSStorage from '../../media/storageprovider/ipfs.storage'
 import { createDefaultStorageProvider, getStorageProvider } from '../../media/storageprovider/storageprovider'
 import {
   cleanSceneDataCacheURLs,
@@ -23,20 +24,28 @@ describe('Scene Helper Functions', () => {
       }
     }
 
-    const parsedMockData = {
+    let parsedMockData = {
       value: `https://${storageProvider.cacheDomain}/projects/${mockValue}`,
       property: {
         nestedValue: `https://${storageProvider.cacheDomain}/projects/${mockValue2}`
       }
     }
+    if (storageProvider instanceof IPFSStorage) {
+      parsedMockData = {
+        value: `https://${storageProvider.cacheDomain}/ipfs/${mockValue}`,
+        property: {
+          nestedValue: `https://${storageProvider.cacheDomain}/ipfs/${mockValue2}`
+        }
+      }
+    }
 
     it('should parse saved data', async function () {
-      const parsedData = parseSceneDataCacheURLs(_.cloneDeep(savedMockData) as any, storageProvider.cacheDomain)
+      const parsedData = await parseSceneDataCacheURLs(_.cloneDeep(savedMockData) as any, storageProvider)
       assert.deepStrictEqual(parsedMockData, parsedData)
     })
 
     it('should unparse parsed data', async function () {
-      const unparsedData = cleanSceneDataCacheURLs(_.cloneDeep(parsedMockData) as any, storageProvider.cacheDomain)
+      const unparsedData = await cleanSceneDataCacheURLs(_.cloneDeep(parsedMockData) as any, storageProvider)
       assert.deepStrictEqual(savedMockData, unparsedData)
     })
   })
@@ -54,13 +63,13 @@ describe('Scene Helper Functions', () => {
 
     it('should parse saved data', async function () {
       const storageProvider = getStorageProvider()
-      const parsedData = parseSceneDataCacheURLs(_.cloneDeep(savedMockData) as any, storageProvider.cacheDomain)
+      const parsedData = await parseSceneDataCacheURLs(_.cloneDeep(savedMockData) as any, storageProvider)
       assert.deepStrictEqual(parsedMockData, parsedData)
     })
 
     it('should unparse parsed data', async function () {
       const storageProvider = getStorageProvider()
-      const unparsedData = cleanSceneDataCacheURLs(_.cloneDeep(parsedMockData) as any, storageProvider.cacheDomain)
+      const unparsedData = await cleanSceneDataCacheURLs(_.cloneDeep(parsedMockData) as any, storageProvider)
       assert.deepStrictEqual(savedMockData, unparsedData)
     })
   })

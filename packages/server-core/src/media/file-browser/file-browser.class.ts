@@ -7,9 +7,8 @@ import { FileContentType } from '@xrengine/common/src/interfaces/FileContentType
 
 import { Application } from '../../../declarations'
 import { copyRecursiveSync, getIncrementalName } from '../FileUtil'
-import { getCachedAsset } from '../storageprovider/getCachedAsset'
 import { getStorageProvider } from '../storageprovider/storageprovider'
-import { StorageObjectInterface, StorageProviderInterface } from '../storageprovider/storageprovider.interface'
+import { StorageObjectInterface } from '../storageprovider/storageprovider.interface'
 
 export const projectsRootFolder = path.join(appRootPath.path, 'packages/projects')
 
@@ -134,7 +133,7 @@ export class FileBrowserService implements ServiceMethods<any> {
     if (!fs.existsSync(parentDirPath)) fs.mkdirSync(parentDirPath, { recursive: true })
     fs.writeFileSync(filePath, data.body)
 
-    return getCachedAsset(key, storageProvider.cacheDomain, params && params.provider == null)
+    return await storageProvider.getCachedAsset(key, params && params.provider == null)
   }
 
   /**
